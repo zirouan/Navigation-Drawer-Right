@@ -33,6 +33,10 @@ import br.liveo.utils.Menus;
 import br.liveo.utils.Utils;
 
 public class NavigationMain extends FragmentActivity{
+    
+    private static final int TIME_TO_EXIT_MENU_BUTTON = 400;
+    private static final int TIME_TO_ENTER_MENU_BUTTON = (int) (TIME_TO_EXIT_MENU_BUTTON + (TIME_TO_EXIT_MENU_BUTTON * 0.45));
+    private static final int TIME_TO_OPEN_DRAWER = (int) (TIME_TO_EXIT_MENU_BUTTON - TIME_TO_EXIT_MENU_BUTTON * 0.1);
 			
     private int mLastPosition = 1;
 	private ListView mListDrawer;    
@@ -103,6 +107,7 @@ public class NavigationMain extends FragmentActivity{
 	}
 	
 	private void menuButtonAnimation(final boolean enter) {
+	    
 	    ObjectAnimator rotate;
         ObjectAnimator translate;
         ObjectAnimator alpha;
@@ -119,7 +124,7 @@ public class NavigationMain extends FragmentActivity{
         
 	    AnimatorSet anim = new AnimatorSet();
 	    anim.playTogether(rotate, translate, alpha);
-	    anim.setDuration(600);
+	    anim.setDuration((enter)?TIME_TO_ENTER_MENU_BUTTON:TIME_TO_EXIT_MENU_BUTTON);
 	    anim.addListener(new AnimatorListener() {
             
             @Override
@@ -130,7 +135,7 @@ public class NavigationMain extends FragmentActivity{
                         public void run() {
                             mLayoutDrawer.openDrawer(mRelativeDrawer);
                         }
-                    }, 500);
+                    }, TIME_TO_OPEN_DRAWER);
                 }
             }
             

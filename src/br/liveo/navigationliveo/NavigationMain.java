@@ -3,9 +3,14 @@ package br.liveo.navigationliveo;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -17,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import br.liveo.adapter.NavigationAdapter;
@@ -33,18 +39,20 @@ public class NavigationMain extends FragmentActivity{
 
 	private DrawerLayout mLayoutDrawer;		
 	private RelativeLayout mUserDrawer;
-	private RelativeLayout mRelativeDrawer;	
+	private RelativeLayout mRelativeDrawer;
 
 	private FragmentManager mFragmentManager;
 	private NavigationAdapter mNavigationAdapter;
-	private ActionBarDrawerToggleCompat mDrawerToggle;	
+	private ActionBarDrawerToggleCompat mDrawerToggle;
+	
+	private FrameLayout mButtonDrawer;
 		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);		
 		setContentView(R.layout.navigation_main);		
 		        
-        mListDrawer = (ListView) findViewById(R.id.listDrawer);        
+        mListDrawer = (ListView) findViewById(R.id.listDrawer);
 		mRelativeDrawer = (RelativeLayout) findViewById(R.id.relativeDrawer);		
 		mLayoutDrawer = (DrawerLayout) findViewById(R.id.layoutDrawer);	
 		
@@ -71,6 +79,14 @@ public class NavigationMain extends FragmentActivity{
 		mListDrawer.setAdapter(mNavigationAdapter);
 		mListDrawer.setOnItemClickListener(new DrawerItemClickListener());
 
+        mButtonDrawer = (FrameLayout) findViewById(R.id.buttonDrawer);
+        mButtonDrawer.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                menuButtonAnimation(false);
+            }
+        });
+        
 		mDrawerToggle = new ActionBarDrawerToggleCompat(this, mLayoutDrawer);		
 		mLayoutDrawer.setDrawerListener(mDrawerToggle);
 		
@@ -84,6 +100,50 @@ public class NavigationMain extends FragmentActivity{
 	    	setLastPosition(mLastPosition); 
 	    	setFragmentList(mLastPosition);
 	    }			             
+	}
+	
+	private void menuButtonAnimation(final boolean enter) {
+	    ObjectAnimator rotate;
+        ObjectAnimator translate;
+        ObjectAnimator alpha;
+	    
+        if (enter) {
+            rotate    = ObjectAnimator.ofFloat(mButtonDrawer, "rotation", 720, 0);
+            translate = ObjectAnimator.ofFloat(mButtonDrawer, "y", mButtonDrawer.getHeight() * 6,  (float) (mButtonDrawer.getHeight() / 2.7));
+            alpha     = ObjectAnimator.ofFloat(mButtonDrawer, "alpha", 0, 1);
+        } else {
+	        rotate    = ObjectAnimator.ofFloat(mButtonDrawer, "rotation", 0, 720);
+            translate = ObjectAnimator.ofFloat(mButtonDrawer, "y", (float) (mButtonDrawer.getHeight() / 2.7), mButtonDrawer.getHeight() * 6);
+	        alpha     = ObjectAnimator.ofFloat(mButtonDrawer, "alpha", 1, 0);
+        }
+        
+	    AnimatorSet anim = new AnimatorSet();
+	    anim.playTogether(rotate, translate, alpha);
+	    anim.setDuration(600);
+	    anim.addListener(new AnimatorListener() {
+            
+            @Override
+            public void onAnimationStart(Animator animation) {
+                if (!enter) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLayoutDrawer.openDrawer(mRelativeDrawer);
+                        }
+                    }, 500);
+                }
+            }
+            
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+            
+            @Override
+            public void onAnimationEnd(Animator animation) {}
+            
+            @Override
+            public void onAnimationCancel(Animator animation) {}
+        });
+	    anim.start();
 	}
 	
 	private void setFragmentList(int posicao){
@@ -203,7 +263,10 @@ public class NavigationMain extends FragmentActivity{
 		}
 		
 		@Override
-		public void onDrawerClosed(View view) {			
+		public void onDrawerClosed(View view) {
+
+            menuButtonAnimation(true);
+            
 			supportInvalidateOptionsMenu();				
 		}
 
